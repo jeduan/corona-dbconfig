@@ -66,6 +66,7 @@ function M.__call(t, ...)
 end
 
 function M.init(settings)
+	settings = settings or {}
 	M.name = settings.name or 'config'
 	M.location = settings.location or system.DocumentsDirectory
 	M.debug = settings.debug or false
@@ -82,14 +83,13 @@ function M.init(settings)
 	local step = stmt:step()
 	assert(step == sqlite.ROW, 'Failed to detect if schema already exists')
 
+	M.inited = true
 	if stmt:get_value(0) == 0 then
 		log '[config] Creating config'
 		local exec = M.db:exec "CREATE TABLE yogoconfig (key VARCHAR UNIQUE, value VARCHAR);"
 		assert(exec == sqlite.OK, 'There was an error creating the schema')
 		vent:trigger('createdConfig')
 	end
-
-	M.inited = true
 end
 
 M.__index = M
