@@ -8,6 +8,24 @@ function M.__call(t, ...)
 	assert(M.inited, 'Please call config.init first')
 	local args = {...}
 
+	if args[1] == 'schemaVersion' then
+		if #args == 2 then
+			local arg = type(args[2]) == 'number' and args[2] or tonumber(args[2])
+			M.db:exec('PRAGMA user_version='..arg)
+			return true
+
+		elseif #args == 1 then
+			local stmt = M.db:prepare('PRAGMA user_version')
+			assert(stmt, 'error while preparing user_version')
+
+			local step = stmt:step()
+			assert(step == sqlite.ROW, 'error while retrieving user_version')
+			local ret = stmt:get_value(0)
+			stmt:finalize()
+			return ret
+		end
+	end
+
 	if #args == 2 then
 		local key, value = unpack(args)
 		local stmt, _
