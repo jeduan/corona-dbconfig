@@ -90,6 +90,7 @@ function M.init(settings)
 		assert(exec == sqlite.OK, 'There was an error creating the schema')
 		vent:trigger('createdConfig')
 	end
+	vent:trigger('initedConfig')
 end
 
 M.__index = M
