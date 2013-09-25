@@ -46,7 +46,7 @@ function M.__call(t, ...)
 			stmt = M.db:prepare "INSERT INTO yogoconfig(key, value) VALUES (:key, :value)"
 			assert(stmt, 'Failed to prepare config-insert statement')
 
-			local _ = stmt:bind_names({value = value, key = key})
+			local _ = stmt:bind_names({value = tostring(value), key = key})
 			assert(_ == sqlite.OK, 'Failed to bind config-insert statement')
 
 			_ = stmt:step()
@@ -73,6 +73,13 @@ function M.__call(t, ...)
 		elseif _ == sqlite.ROW then
 			local ret = stmt:get_value(0)
 			stmt:finalize()
+			if ret == 'true' then
+				return true
+			elseif ret == 'false' then
+				return false
+			elseif ret == 'nil' then
+				return nil
+			end
 			return ret
 		else
 			error('Failed to retrieve value from config-select statement')
