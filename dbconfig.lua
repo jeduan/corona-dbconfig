@@ -90,6 +90,31 @@ function M.__call(t, ...)
 	end
 end
 
+function M.queryColumn(column, sql)
+	local ret = nil
+	for row in M.db:nrows(sql) do
+		ret = row[column]
+	end
+	return ret
+end
+
+function M.exec(sql, args)
+	local ret
+	if not args then
+		ret = M.db:exec(sql)
+		assert(ret == sqlite3.OK, '[SQL] Failed('..ret..'): ' .. sql)
+	else
+		local stmt = M.db:prepare(sql)
+		assert(type(args) == 'table', 'expected parameter args to be a table')
+
+		if #args > 0 then
+			stmt:bind_values(unpack(args))
+		end
+		ret = stmt:step()
+		assert(ret == sqlite3.DONE, '[SQL] failed to execute sql ' .. ret)
+	end
+end
+
 function M.init(settings)
 	settings = settings or {}
 	M.name = settings.name or 'config'
