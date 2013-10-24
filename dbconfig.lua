@@ -98,6 +98,14 @@ function M.queryColumn(column, sql)
 	return ret
 end
 
+function M.queryTable(sql)
+	local ret = {}
+	for row in M.db:nrows(sql) do
+		ret[#ret + 1] = row
+	end
+	return ret
+end
+
 function M.exec(sql, args)
 	local ret
 	if not args then
