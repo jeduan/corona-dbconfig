@@ -116,11 +116,15 @@ function M.exec(sql, args)
 		assert(type(args) == 'table', 'expected parameter args to be a table')
 
 		if #args > 0 then
-			stmt:bind_values(unpack(args))
+			stmt:bind_names(args)
 		end
 		ret = stmt:step()
 		assert(ret == sqlite3.DONE, '[SQL] failed to execute sql ' .. ret)
 	end
+end
+
+function M.lastInsertId()
+	return M.db.last_insert_rowid()
 end
 
 function M.init(settings)

@@ -34,5 +34,47 @@ config.init{
 
 config('key', 'value')
 ```
-
 Please note that all values are converted to strings
+
+## aditional methods
+
+### config.exec
+
+`config.exec(sql[, args])` executes an SQL query. if args is provided it binds the table names.
+
+```lua
+local sql = "UPDATE contacts SET company=:company WHERE name=:name"
+local params = {
+	company = 'Foo Enterprises'
+	name = 'John Doe'
+}
+config.exec(sql, params)
+```
+
+### config.lastInsertId
+
+`config.lastInsertId` will return the rowid of the last inserted row
+
+```lua
+local sql = "INSERT INTO contacts (name) VALUES ('John Smith')"
+config.exec(sql)
+local id = config.lastInsertId()
+```
+
+### config.queryColumn
+
+`config.queryColumn` will return a specific column of an sql query
+
+```lua
+local sql = "SELECT name FROM contacts"
+local name = config.queryColumn('name', sql)
+```
+
+### config.queryTable
+
+`config.queryTable` will return a table with the named results of a query
+
+```lua
+local sql = "SELECT name FROM contacts"
+local contacts = config.queryTable(sql)
+```
