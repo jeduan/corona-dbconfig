@@ -124,7 +124,7 @@ function M.exec(sql, args)
 end
 
 function M.lastInsertId()
-	return M.db.last_insert_rowid()
+	return M.db:last_insert_rowid()
 end
 
 function M.init(settings)
