@@ -115,9 +115,7 @@ function M.exec(sql, args)
 		local stmt = M.db:prepare(sql)
 		assert(type(args) == 'table', 'expected parameter args to be a table')
 
-		if #args > 0 then
-			stmt:bind_names(args)
-		end
+		stmt:bind_names(args)
 		ret = stmt:step()
 		assert(ret == sqlite3.DONE, '[SQL] failed to execute sql ' .. ret)
 	end
