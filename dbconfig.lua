@@ -126,17 +126,27 @@ function M.lastInsertId()
 end
 
 function M.init(settings)
+	if M.inited then
+		return
+	end
+
 	settings = settings or {}
-	M.name = settings.name or 'config'
-	M.location = settings.location or system.DocumentsDirectory
 	M.debug = settings.debug or false
 
-	local path = system.pathForFile(M.name .. '.sqlite', M.location)
-	M.db = sqlite3.open( path )
-	if M.debug then
-		M.db:trace(function(udata, sql)
-			log('[SQL] ' .. sql)
-		end, {})
+	if settings.db then
+		M.db = settings.db
+		assert(M.db.isopen and M.db:isopen(), 'The database is closed')
+	else
+		M.name = settings.name or 'config'
+		M.location = settings.location or system.DocumentsDirectory
+		local path = system.pathForFile(M.name .. '.sqlite', M.location)
+		M.db = sqlite3.open( path )
+		if M.debug then
+			M.db:trace(function(udata, sql)
+				log('[SQL] ' .. sql)
+			end, {})
+		end
+		Runtime:addEventListener('system', M.onSystemEvent)
 	end
 
 	local stmt = M.db:prepare("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'yogoconfig'")
@@ -155,7 +165,7 @@ end
 
 M.__index = M
 
-local function onSystemEvent( event )
+function M.onSystemEvent( event )
 	if event.type == "applicationExit"  then
 		if M.db and M.db:isopen() then
 			M.db:close()
@@ -163,6 +173,5 @@ local function onSystemEvent( event )
 		end
 	end
 end
-Runtime:addEventListener('system', onSystemEvent)
 
 return setmetatable({}, M)
