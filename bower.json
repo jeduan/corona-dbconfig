@@ -3,7 +3,7 @@
   "version": "0.6.0",
   "main": "dbconfig.lua",
   "dependencies": {
-    "vent": "~0.3.0",
-    "log": "~0.3.0"
+    "vent": "0.x",
+    "log": "0.x"
   }
 }
