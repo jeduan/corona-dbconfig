@@ -3,6 +3,73 @@ local M = {}
 local sqlite = require 'sqlite3'
 local vent = require 'vendor.vent.vent'
 local log = require 'vendor.log.log'
+local cache = {}
+
+local function setValue(key, value)
+	cache[key] = value
+	local stmt, _
+
+	stmt = M.db:prepare "UPDATE yogoconfig SET value=:value WHERE key=:key"
+	assert(stmt, 'Failed to prepare config-update statement')
+
+	_ = stmt:bind_names{value = tostring(value), key = key}
+	assert(_ == sqlite.OK, 'Failed to bind config-update statement')
+
+	_ = stmt:step()
+	assert(_ == sqlite.DONE, 'Failed to update config-update statement')
+
+	stmt:finalize()
+	stmt = nil
+
+	if M.db:changes() == 0 then
+		stmt = M.db:prepare "INSERT INTO yogoconfig(key, value) VALUES (:key, :value)"
+		assert(stmt, 'Failed to prepare config-insert statement')
+
+		local _ = stmt:bind_names({value = tostring(value), key = key})
+		assert(_ == sqlite.OK, 'Failed to bind config-insert statement')
+
+		_ = stmt:step()
+		assert(_ == sqlite.DONE, 'Failed to insert config-insert statement')
+
+		stmt:finalize()
+		stmt = nil
+	end
+end
+
+local function getValue(key)
+	if cache[key] then
+		return cache[key]
+	end
+	local stmt, _
+
+	stmt = M.db:prepare "SELECT value FROM yogoconfig where key=?"
+	assert(stmt, 'Failed to prepare config-select statement')
+
+	_ = stmt:bind_values(key)
+	assert(_ == sqlite.OK, 'Failed to bind parameter on config-select statement')
+
+	_ = stmt:step()
+	if _ == sqlite.DONE then
+		stmt:reset()
+		stmt:finalize()
+		cache[key] = nil
+		return nil
+	elseif _ == sqlite.ROW then
+		local ret = stmt:get_value(0)
+		stmt:finalize()
+		if ret == 'true' then
+			ret = true
+		elseif ret == 'false' then
+			ret = false
+		elseif ret == 'nil' then
+			ret = nil
+		end
+		cache[key] = ret
+		return ret
+	else
+		error('Failed to retrieve value from config-select statement')
+	end
+end
 
 function M.__call(t, ...)
 	assert(M.inited, 'Please call config.init first')
@@ -27,62 +94,17 @@ function M.__call(t, ...)
 	end
 
 	if #args == 2 then
-		local key, value = unpack(args)
-		local stmt, _
-
-		stmt = M.db:prepare "UPDATE yogoconfig SET value=:value WHERE key=:key"
-		assert(stmt, 'Failed to prepare config-update statement')
-
-		_ = stmt:bind_names{value = tostring(value), key = key}
-		assert(_ == sqlite.OK, 'Failed to bind config-update statement')
-
-		_ = stmt:step()
-		assert(_ == sqlite.DONE, 'Failed to update config-update statement')
-
-		stmt:finalize()
-		stmt = nil
-
-		if M.db:changes() == 0 then
-			stmt = M.db:prepare "INSERT INTO yogoconfig(key, value) VALUES (:key, :value)"
-			assert(stmt, 'Failed to prepare config-insert statement')
-
-			local _ = stmt:bind_names({value = tostring(value), key = key})
-			assert(_ == sqlite.OK, 'Failed to bind config-insert statement')
-
-			_ = stmt:step()
-			assert(_ == sqlite.DONE, 'Failed to insert config-insert statement')
-
-			stmt:finalize()
-			stmt = nil
-		end
+		setValue(args[1], args[2])
+		return
 
 	elseif #args == 1 then
-		local stmt, _
-
-		stmt = M.db:prepare "SELECT value FROM yogoconfig where key=?"
-		assert(stmt, 'Failed to prepare config-select statement')
-
-		_ = stmt:bind_values(args[1])
-		assert(_ == sqlite.OK, 'Failed to bind parameter on config-select statement')
-
-		_ = stmt:step()
-		if _ == sqlite.DONE then
-			stmt:reset()
-			stmt:finalize()
-			return nil
-		elseif _ == sqlite.ROW then
-			local ret = stmt:get_value(0)
-			stmt:finalize()
-			if ret == 'true' then
-				return true
-			elseif ret == 'false' then
-				return false
-			elseif ret == 'nil' then
-				return nil
+		if type(args[1]) == 'string' then
+			return getValue(args[1])
+		elseif type(args[1]) == 'table' then
+			for k, v in pairs(table) do
+				setValue(k, v)
 			end
-			return ret
-		else
-			error('Failed to retrieve value from config-select statement')
+			return
 		end
 	else
 		--print('0 or more than 2 values passed to config')

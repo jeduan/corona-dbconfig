@@ -23,6 +23,8 @@ It takes a table with the following options
  - `name` (default config) the name of the database
  - `location` (default system.DocumentsDirectory) the location of the database
  - `debug` (default false) set to true to log all database queries
+ - `db` an already initialized sqlite db object. This ignores `name` and `location`
+
  
 ```lua
 local config = require 'vendor.dbconfig.dbconfig'
@@ -33,6 +35,8 @@ config.init{
 }
 
 config('key', 'value')
+-- or
+config{key = 'value'}
 ```
 Please note that all values are converted to strings
 
