@@ -101,7 +101,7 @@ function M.__call(t, ...)
 		if type(args[1]) == 'string' then
 			return getValue(args[1])
 		elseif type(args[1]) == 'table' then
-			for k, v in pairs(table) do
+			for k, v in pairs(args[1]) do
 				setValue(k, v)
 			end
 			return

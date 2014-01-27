@@ -1,6 +1,6 @@
 {
   "name": "dbconfig",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "dbconfig.lua",
   "dependencies": {
     "vent": "0.x",
