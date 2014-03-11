@@ -1,1 +1,5 @@
 vendor
+node_modules
+.envrc
+build
+.DS_Store
