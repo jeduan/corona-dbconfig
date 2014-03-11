@@ -1,8 +1,9 @@
-# log-tools
+# dbconfig
 
 ## Installation
 
-Ensure the bower registry is `"https://yogome-bower.herokuapp.com"` and then `bower install dbconfig`
+Download the release zip from [the releases tab](https://github.com/jeduan/corona-dbconfig/releases)
+and drop it on your project
 
 ## Usage
 
@@ -20,19 +21,25 @@ Calling `config.init` is required before config. It is suggested to be called wi
 
 It takes a table with the following options
 
+ - `debug` (default false) set to true to log all database queries
+
+and either
+
  - `name` (default config) the name of the database
  - `location` (default system.DocumentsDirectory) the location of the database
- - `debug` (default false) set to true to log all database queries
+
+or
+
  - `db` an already initialized sqlite db object. This ignores `name` and `location`
 
  
 ```lua
 local config = require 'vendor.dbconfig.dbconfig'
 
-config.init{
-	name = 'config',
-	debug = true
-}
+config.init({
+  name = 'config',
+  debug = true
+})
 
 config('key', 'value')
 -- or
@@ -41,6 +48,8 @@ config{key = 'value'}
 Please note that all values are converted to strings
 
 ## aditional methods
+
+dbconfig includes some aditional utility methods for querying databases
 
 ### config.exec
 
