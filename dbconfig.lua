@@ -37,7 +37,7 @@ local function setValue(key, value)
 end
 
 local function getValue(key)
-	if cache[key] then
+	if cache[key] ~= nil then
 		return cache[key]
 	end
 	local stmt, _
